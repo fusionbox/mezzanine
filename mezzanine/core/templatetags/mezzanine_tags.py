@@ -349,17 +349,17 @@ def thumbnail(image_url, width, height, upscale=True, quality=95, left=.5,
         raise FileSystemEncodingChanged()
     if thumb_exists:
         # Thumbnail exists, don't generate it.
-        return thumb_url
+        return default_storage.url(thumb_url)
     elif not default_storage.exists(image_url):
         # Requested image does not exist, just return its URL.
-        return image_url
+        return default_storage.url(image_url)
 
     f = default_storage.open(image_url)
     try:
         image = Image.open(f)
     except:
         # Invalid image format.
-        return image_url
+        return default_storage.url(image_url)
 
     image_info = image.info
 
@@ -404,7 +404,7 @@ def thumbnail(image_url, width, height, upscale=True, quality=95, left=.5,
         try:
             image = image.convert("RGBA")
         except:
-            return image_url
+            return default_storage.url(image_url)
     # Required for progressive jpgs.
     ImageFile.MAXBLOCK = 2 * (max(image.size) ** 2)
 
@@ -448,8 +448,8 @@ def thumbnail(image_url, width, height, upscale=True, quality=95, left=.5,
             default_storage.delete(thumb_path)
         except Exception:
             pass
-        return image_url
-    return thumb_url
+        return default_storage.url(image_url)
+    return default_storage.url(thumb_url)
 
 
 @register.inclusion_tag("includes/editable_loader.html", takes_context=True)
