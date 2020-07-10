@@ -11,9 +11,9 @@ import os
 from six import BytesIO
 
 try:
-    from urllib.parse import quote, unquote
+    from urllib.parse import unquote
 except ImportError:
-    from urllib import quote, unquote
+    from urllib import unquote
 
 from django.apps import apps
 from django.contrib import admin
@@ -319,25 +319,15 @@ def thumbnail(image_url, width, height, upscale=True, quality=95, left=.5,
     # is written, allowing us to purge any previously generated
     # thumbnails that may match a new image name.
     if os.path.isabs(settings.THUMBNAILS_DIR_NAME):
-        thumb_dir = os.path.join(settings.MEDIA_ROOT,
-                                 settings.THUMBNAILS_DIR_NAME,
-                                 image_dir, image_name)
         thumb_url = ("%s/%s/%s/%s" % (settings.THUMBNAILS_DIR_NAME,
-                                  os.path.dirname(image_url),
-                                  quote(image_name.encode("utf-8")),
-                                  quote(thumb_name.encode("utf-8")))
-                     ).lstrip('/')
+                                      os.path.dirname(image_url), image_name,
+                                      thumb_name)).lstrip('/')
     else:
-        thumb_dir = os.path.join(settings.MEDIA_ROOT, image_dir,
-                                 settings.THUMBNAILS_DIR_NAME, image_name)
-        thumb_url = "%s/%s/%s" % (settings.THUMBNAILS_DIR_NAME,
-                                  quote(image_name.encode("utf-8")),
-                                  quote(thumb_name.encode("utf-8")))
+        thumb_url = "%s/%s/%s" % (settings.THUMBNAILS_DIR_NAME, image_name,
+                                  thumb_name)
         image_url_path = os.path.dirname(image_url)
         if image_url_path:
             thumb_url = "%s/%s" % (image_url_path, thumb_url)
-
-    thumb_path = os.path.join(thumb_dir, thumb_name)
 
     try:
         thumb_exists = default_storage.exists(thumb_url)
@@ -445,7 +435,7 @@ def thumbnail(image_url, width, height, upscale=True, quality=95, left=.5,
         # so remove it, otherwise the check for it existing will just
         # return the corrupted image next time it's requested.
         try:
-            default_storage.delete(thumb_path)
+            default_storage.delete(thumb_url)
         except Exception:
             pass
         return default_storage.url(image_url)
